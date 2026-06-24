@@ -5,6 +5,9 @@ import com.fitting.cartservice.dto.CartItemUpdateRequest;
 import com.fitting.cartservice.dto.CartResponse;
 import com.fitting.cartservice.service.CartService;
 import com.fitting.cartservice.util.ApiResponse;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +15,7 @@ import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 @Slf4j
+@Tag(name = "Carrito", description = "Gestión del carrito de compras por usuario")
 @RestController
 @RequestMapping("/api/v1/cart")
 @RequiredArgsConstructor
@@ -19,7 +23,8 @@ public class CartController {
 
     private final CartService cartService;
 
-    // Obtener o crear carrito del usuario
+    @Operation(summary = "Obtener o crear carrito", description = "Si el usuario no tiene carrito, lo crea automáticamente")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Carrito obtenido")
     @GetMapping("/user/{userId}")
     public ResponseEntity<ApiResponse<CartResponse>> getCart(@PathVariable Long userId) {
         log.info("GET /api/v1/cart/user/{}", userId);
@@ -27,7 +32,11 @@ public class CartController {
                 cartService.getOrCreateCart(userId)));
     }
 
-    // Agregar item al carrito
+    @Operation(summary = "Agregar item al carrito", description = "Si el producto ya existe en el carrito, suma la cantidad")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "201", description = "Item agregado"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "400", description = "Datos inválidos")
+    })
     @PostMapping("/user/{userId}/items")
     public ResponseEntity<ApiResponse<CartResponse>> addItem(
             @PathVariable Long userId,
@@ -38,7 +47,11 @@ public class CartController {
                         cartService.addItem(userId, request)));
     }
 
-    // Actualizar cantidad de un item
+    @Operation(summary = "Actualizar cantidad de un item")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Cantidad actualizada"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Producto no encontrado en el carrito")
+    })
     @PatchMapping("/user/{userId}/items/{productId}")
     public ResponseEntity<ApiResponse<CartResponse>> updateItem(
             @PathVariable Long userId,
@@ -49,7 +62,11 @@ public class CartController {
                 cartService.updateItemQuantity(userId, productId, request)));
     }
 
-    // Eliminar un item del carrito
+    @Operation(summary = "Eliminar item del carrito")
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Item eliminado"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "404", description = "Producto no encontrado en el carrito")
+    })
     @DeleteMapping("/user/{userId}/items/{productId}")
     public ResponseEntity<ApiResponse<CartResponse>> removeItem(
             @PathVariable Long userId,
@@ -59,7 +76,8 @@ public class CartController {
                 cartService.removeItem(userId, productId)));
     }
 
-    // Vaciar carrito (mantiene el carrito, elimina los items)
+    @Operation(summary = "Vaciar carrito", description = "Elimina todos los items pero mantiene el carrito")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Carrito vaciado")
     @DeleteMapping("/user/{userId}/clear")
     public ResponseEntity<ApiResponse<CartResponse>> clearCart(@PathVariable Long userId) {
         log.info("DELETE /api/v1/cart/user/{}/clear", userId);
@@ -67,7 +85,8 @@ public class CartController {
                 cartService.clearCart(userId)));
     }
 
-    // Eliminar carrito completo
+    @Operation(summary = "Eliminar carrito completo")
+    @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Carrito eliminado")
     @DeleteMapping("/user/{userId}")
     public ResponseEntity<ApiResponse<Void>> deleteCart(@PathVariable Long userId) {
         log.info("DELETE /api/v1/cart/user/{}", userId);
