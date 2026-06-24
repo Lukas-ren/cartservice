@@ -5,6 +5,14 @@ spring:
   application:
     name: cart-service
 
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: alpha
+
   datasource:
     url: jdbc:mysql://localhost:3306/fitting_carrito?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC
     username: root
